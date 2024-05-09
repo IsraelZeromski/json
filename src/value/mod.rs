@@ -673,6 +673,45 @@ impl Value {
         }
     }
 
+    /// If the `Value` is an integer, represent it as i128 if possible. Returns
+    /// None otherwise.
+    ///
+    /// ```
+    /// # use serde_json::json;
+    /// #
+    /// let big = i128::max_value() as u128 + 10;
+    /// let v = json!({ "a": 64, "b": big, "c": 256.0 });
+    ///
+    /// assert_eq!(v["a"].as_i128(), Some(64));
+    /// assert_eq!(v["b"].as_i128(), None);
+    /// assert_eq!(v["c"].as_i128(), None);
+    /// ```
+    pub fn as_i128(&self) -> Option<i128> {
+        match self {
+            Value::Number(n) => n.as_i128(),
+            _ => None,
+        }
+    }
+
+    /// If the `Value` is an integer, represent it as u128 if possible. Returns
+    /// None otherwise.
+    ///
+    /// ```
+    /// # use serde_json::json;
+    /// #
+    /// let v = json!({ "a": 64, "b": -64, "c": 256.0 });
+    ///
+    /// assert_eq!(v["a"].as_u128(), Some(64));
+    /// assert_eq!(v["b"].as_u128(), None);
+    /// assert_eq!(v["c"].as_u128(), None);
+    /// ```
+    pub fn as_u128(&self) -> Option<u128> {
+        match self {
+            Value::Number(n) => n.as_u128(),
+            _ => None,
+        }
+    }
+
     /// Returns true if the `Value` is a Boolean. Returns false otherwise.
     ///
     /// For any Value on which `is_boolean` returns true, `as_bool` is

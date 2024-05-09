@@ -140,6 +140,28 @@ fn test_write_i64() {
 }
 
 #[test]
+fn test_write_i128() {
+    let str_value = "18446744073709551616".to_string();
+    let str_value1 = "-18446744073709551616".to_string();
+    let str_value3 = "-170141183460469231731687303715884105728".to_string();
+    let str_value4 = "170141183460469231731687303715884105727".to_string();
+    let tests = &[
+        (
+            170141183460469231731687303715884105727 as i128,
+            str_value4.as_str(),
+        ),
+        (18446744073709551616 as i128, str_value.as_str()),
+        (-18446744073709551616 as i128, str_value1.as_str()),
+        (
+            -170141183460469231731687303715884105728 as i128,
+            str_value3.as_str(),
+        ),
+    ];
+    test_encode_ok(tests);
+    test_pretty_encode_ok(tests);
+}
+
+#[test]
 fn test_write_f64() {
     let tests = &[
         (3.0, "3.0"),
@@ -816,12 +838,38 @@ fn test_parse_i64() {
 }
 
 #[test]
+#[cfg(feature = "arbitrary_precision")]
+fn test_parse_i128() {
+    test_parse_ok(vec![
+        ("-2", -2),
+        ("-1234", -1234),
+        (" -1234 ", -1234),
+        (
+            &"-170141183460469231731687303715884105728".to_string(),
+            i128::MIN,
+        ),
+        (&i128::MAX.to_string(), i128::MAX),
+    ]);
+}
+
+#[test]
 fn test_parse_u64() {
     test_parse_ok(vec![
         ("0", 0u64),
         ("3", 3u64),
         ("1234", 1234),
         (&u64::MAX.to_string(), u64::MAX),
+    ]);
+}
+
+#[test]
+#[cfg(feature = "arbitrary_precision")]
+fn test_parse_u128() {
+    test_parse_ok(vec![
+        ("2", 2),
+        (" 123433331232 ", 123433331232),
+        (&u128::MIN.to_string(), u128::MIN),
+        (&u128::MAX.to_string(), u128::MAX),
     ]);
 }
 
@@ -2100,20 +2148,20 @@ fn issue_220() {
     assert_eq!(from_str::<E>(r#"{"V": 0}"#).unwrap(), E::V(0));
 }
 
+macro_rules! number_partialeq_ok {
+    ($($n:expr)*) => {
+        $(
+            let value = to_value($n).unwrap();
+            let s = $n.to_string();
+            assert_eq!(value, $n);
+            assert_eq!($n, value);
+            assert_ne!(value, s);
+        )*
+    }
+}
+
 #[test]
 fn test_partialeq_number() {
-    macro_rules! number_partialeq_ok {
-        ($($n:expr)*) => {
-            $(
-                let value = to_value($n).unwrap();
-                let s = $n.to_string();
-                assert_eq!(value, $n);
-                assert_eq!($n, value);
-                assert_ne!(value, s);
-            )*
-        };
-    }
-
     number_partialeq_ok!(0 1 100
         i8::MIN i8::MAX i16::MIN i16::MAX i32::MIN i32::MAX i64::MIN i64::MAX
         u8::MIN u8::MAX u16::MIN u16::MAX u32::MIN u32::MAX u64::MIN u64::MAX
@@ -2122,6 +2170,13 @@ fn test_partialeq_number() {
         f32::consts::E f32::consts::PI f32::consts::LN_2 f32::consts::LOG2_E
         f64::consts::E f64::consts::PI f64::consts::LN_2 f64::consts::LOG2_E
     );
+}
+
+#[test]
+#[cfg(integer128)]
+#[cfg(feature = "arbitrary_precision")]
+fn test_partialeq_integer128() {
+    number_partialeq_ok!(i128::MIN i128::MAX u128::MIN u128::MAX)
 }
 
 #[test]
@@ -2281,10 +2336,10 @@ fn test_integer128_to_value() {
         assert_eq!(to_value(integer128).unwrap().to_string(), expected);
     }
 
-    if !cfg!(feature = "arbitrary_precision") {
-        let err = to_value(u128::from(u64::MAX) + 1).unwrap_err();
-        assert_eq!(err.to_string(), "number out of range");
-    }
+    // if !cfg!(feature = "arbitrary_precision") {
+    //     let err = to_value(u128::from(u64::MAX) + 1).unwrap_err();
+    //     assert_eq!(err.to_string(), "number out of range");
+    // }
 }
 
 #[cfg(feature = "raw_value")]

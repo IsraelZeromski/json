@@ -44,8 +44,16 @@ impl<'de> Deserialize<'de> for Value {
                 Ok(Value::Number(value.into()))
             }
 
+            fn visit_i128<E>(self, value: i128) -> Result<Value, E> {
+                Ok(Value::Number(value.into()))
+            }
+
             #[inline]
             fn visit_u64<E>(self, value: u64) -> Result<Value, E> {
+                Ok(Value::Number(value.into()))
+            }
+
+            fn visit_u128<E>(self, value: u128) -> Result<Value, E> {
                 Ok(Value::Number(value.into()))
             }
 

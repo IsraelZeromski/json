@@ -3,7 +3,7 @@
 use crate::error::{Error, ErrorCode, Result};
 #[cfg(feature = "float_roundtrip")]
 use crate::lexical;
-use crate::number::Number;
+use crate::number::{ExtendedUnexpected, Number};
 use crate::read::{self, Fused, Reference};
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -100,10 +100,13 @@ macro_rules! overflow {
     };
 }
 
+#[allow(dead_code)]
 pub(crate) enum ParserNumber {
     F64(f64),
     U64(u64),
     I64(i64),
+    U128(u128),
+    I128(i128),
     #[cfg(feature = "arbitrary_precision")]
     String(String),
 }
@@ -117,6 +120,8 @@ impl ParserNumber {
             ParserNumber::F64(x) => visitor.visit_f64(x),
             ParserNumber::U64(x) => visitor.visit_u64(x),
             ParserNumber::I64(x) => visitor.visit_i64(x),
+            ParserNumber::U128(x) => visitor.visit_u128(x),
+            ParserNumber::I128(x) => visitor.visit_i128(x),
             #[cfg(feature = "arbitrary_precision")]
             ParserNumber::String(x) => visitor.visit_map(NumberDeserializer { number: x.into() }),
         }
@@ -127,6 +132,12 @@ impl ParserNumber {
             ParserNumber::F64(x) => de::Error::invalid_type(Unexpected::Float(x), exp),
             ParserNumber::U64(x) => de::Error::invalid_type(Unexpected::Unsigned(x), exp),
             ParserNumber::I64(x) => de::Error::invalid_type(Unexpected::Signed(x), exp),
+            ParserNumber::U128(x) => {
+                de::Error::invalid_type(Unexpected::from(ExtendedUnexpected::Unsigned(x)), exp)
+            }
+            ParserNumber::I128(x) => {
+                de::Error::invalid_type(Unexpected::from(ExtendedUnexpected::Signed(x)), exp)
+            }
             #[cfg(feature = "arbitrary_precision")]
             ParserNumber::String(_) => de::Error::invalid_type(Unexpected::Other("number"), exp),
         }

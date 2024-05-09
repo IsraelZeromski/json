@@ -195,6 +195,19 @@ where
     }
 
     #[inline]
+    fn serialize_none(self) -> Result<()> {
+        self.serialize_unit()
+    }
+
+    #[inline]
+    fn serialize_some<T>(self, value: &T) -> Result<()>
+    where
+        T: ?Sized + Serialize,
+    {
+        value.serialize(self)
+    }
+
+    #[inline]
     fn serialize_unit(self) -> Result<()> {
         self.formatter
             .write_null(&mut self.writer)
@@ -261,19 +274,6 @@ where
         self.formatter
             .end_object(&mut self.writer)
             .map_err(Error::io)
-    }
-
-    #[inline]
-    fn serialize_none(self) -> Result<()> {
-        self.serialize_unit()
-    }
-
-    #[inline]
-    fn serialize_some<T>(self, value: &T) -> Result<()>
-    where
-        T: ?Sized + Serialize,
-    {
-        value.serialize(self)
     }
 
     #[inline]

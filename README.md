@@ -1,4 +1,4 @@
-# Serde JSON &emsp; [![Build Status]][actions] [![Latest Version]][crates.io] [![Rustc Version 1.36+]][rustc]
+# Serde JSON - extended (Support 128 bits numbers) &emsp; [![Build Status]][actions] [![Latest Version]][crates.io] [![Rustc Version 1.36+]][rustc]
 
 [Build Status]: https://img.shields.io/github/actions/workflow/status/serde-rs/json/ci.yml?branch=master
 [actions]: https://github.com/serde-rs/json/actions?query=branch%3Amaster

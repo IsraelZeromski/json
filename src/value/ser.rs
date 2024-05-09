@@ -94,21 +94,7 @@ impl serde::Serializer for Serializer {
     }
 
     fn serialize_i128(self, value: i128) -> Result<Value> {
-        #[cfg(feature = "arbitrary_precision")]
-        {
-            Ok(Value::Number(value.into()))
-        }
-
-        #[cfg(not(feature = "arbitrary_precision"))]
-        {
-            if let Ok(value) = u64::try_from(value) {
-                Ok(Value::Number(value.into()))
-            } else if let Ok(value) = i64::try_from(value) {
-                Ok(Value::Number(value.into()))
-            } else {
-                Err(Error::syntax(ErrorCode::NumberOutOfRange, 0, 0))
-            }
-        }
+        Ok(Value::Number(value.into()))
     }
 
     #[inline]
@@ -132,19 +118,7 @@ impl serde::Serializer for Serializer {
     }
 
     fn serialize_u128(self, value: u128) -> Result<Value> {
-        #[cfg(feature = "arbitrary_precision")]
-        {
-            Ok(Value::Number(value.into()))
-        }
-
-        #[cfg(not(feature = "arbitrary_precision"))]
-        {
-            if let Ok(value) = u64::try_from(value) {
-                Ok(Value::Number(value.into()))
-            } else {
-                Err(Error::syntax(ErrorCode::NumberOutOfRange, 0, 0))
-            }
-        }
+        Ok(Value::Number(value.into()))
     }
 
     #[inline]
@@ -172,6 +146,19 @@ impl serde::Serializer for Serializer {
     fn serialize_bytes(self, value: &[u8]) -> Result<Value> {
         let vec = value.iter().map(|&b| Value::Number(b.into())).collect();
         Ok(Value::Array(vec))
+    }
+
+    #[inline]
+    fn serialize_none(self) -> Result<Value> {
+        self.serialize_unit()
+    }
+
+    #[inline]
+    fn serialize_some<T>(self, value: &T) -> Result<Value>
+    where
+        T: ?Sized + Serialize,
+    {
+        value.serialize(self)
     }
 
     #[inline]
@@ -215,19 +202,6 @@ impl serde::Serializer for Serializer {
         let mut values = Map::new();
         values.insert(String::from(variant), tri!(to_value(value)));
         Ok(Value::Object(values))
-    }
-
-    #[inline]
-    fn serialize_none(self) -> Result<Value> {
-        self.serialize_unit()
-    }
-
-    #[inline]
-    fn serialize_some<T>(self, value: &T) -> Result<Value>
-    where
-        T: ?Sized + Serialize,
-    {
-        value.serialize(self)
     }
 
     fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq> {
