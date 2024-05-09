@@ -2335,11 +2335,6 @@ fn test_integer128_to_value() {
         let expected = integer128.to_string();
         assert_eq!(to_value(integer128).unwrap().to_string(), expected);
     }
-
-    // if !cfg!(feature = "arbitrary_precision") {
-    //     let err = to_value(u128::from(u64::MAX) + 1).unwrap_err();
-    //     assert_eq!(err.to_string(), "number out of range");
-    // }
 }
 
 #[cfg(feature = "raw_value")]

@@ -921,11 +921,6 @@ macro_rules! impl_from_signed {
 impl_from_unsigned!(u8, u16, u32, u64, usize);
 impl_from_signed!(i8, i16, i32, i64, isize);
 
-// #[cfg(feature = "arbitrary_precision")]
-// impl_from_unsigned!(u128);
-// #[cfg(feature = "arbitrary_precision")]
-// impl_from_signed!(i128);
-
 impl From<i128> for Number {
     fn from(f: i128) -> Self {
         let n = {
